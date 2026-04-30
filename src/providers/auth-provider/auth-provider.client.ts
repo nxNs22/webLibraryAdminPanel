@@ -4,39 +4,58 @@ import type { AuthProvider } from "@refinedev/core";
 import { supabaseBrowserClient } from "@utils/supabase/client";
 
 export const authProviderClient: AuthProvider = {
+  // ... diğer kodlar aynı kalacak
+
   login: async ({ email, password }) => {
-    const { data, error } = await supabaseBrowserClient.auth.signInWithPassword(
-      {
-        email,
-        password,
-      }
-    );
+    const { data, error } = await supabaseBrowserClient.auth.signInWithPassword({
+      email,
+      password,
+    });
 
     if (error) {
-      return {
-        success: false,
-        error,
-      };
+      return { success: false, error };
     }
 
     if (data?.session) {
-      await supabaseBrowserClient.auth.setSession(data.session);
+      const userId = data.session.user.id; // 🌟 Artık direkt User ID'yi alıyoruz
 
+      // 🌟 YENİ SİSTEM: Senin kendi 'profiles' tablonu kontrol ediyoruz
+      const { data: profileData, error: profileError } = await supabaseBrowserClient
+        .from("profiles")
+        .select("role")
+        .eq("id", userId) // ID ile eşleştiriyoruz
+        .single();
+
+      // Eğer profili yoksa veya rolü 'admin' değilse (yani 'user' ise):
+      if (!profileData || profileData.role !== "admin") {
+        await supabaseBrowserClient.auth.signOut(); // Hemen oturumu kapat
+        return {
+          success: false,
+          error: {
+            name: "Yetkisiz Giriş 🛑",
+            message: "Bu panele sadece sistem yöneticileri girebilir. Müşteri hesapları erişemez.",
+          },
+        };
+      }
+
+      // Rolü 'admin' ise içeri alıyoruz:
+      await supabaseBrowserClient.auth.setSession(data.session);
       return {
         success: true,
         redirectTo: "/",
       };
     }
 
-    // for third-party login
     return {
       success: false,
       error: {
         name: "LoginError",
-        message: "Invalid username or password",
+        message: "Geçersiz e-posta veya şifre",
       },
     };
   },
+
+
   logout: async () => {
     const { error } = await supabaseBrowserClient.auth.signOut();
 

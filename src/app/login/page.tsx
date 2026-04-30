@@ -9,7 +9,14 @@ export default async function Login() {
     redirect(data?.redirectTo || "/");
   }
 
-  return <AuthPage type="login" />;
+  return (
+    <AuthPage 
+      type="login" 
+      registerLink={false} // 🌟 SİHİRLİ KOD: Kayıt Ol linkini tamamen gizler
+      forgotPasswordLink={false} // 🌟 Şifremi Unuttum linkini gizler (istiyorsan silebilirsin)
+      rememberMe={<></>} // 🌟 Beni Hatırla butonunu gizler (istiyorsan silebilirsin)
+    />
+  );
 }
 
 async function getData() {
