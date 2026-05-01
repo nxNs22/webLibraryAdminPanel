@@ -51,7 +51,33 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  // 1. Supabase'den kullanıcının giriş yapıp yapmadığını (user) soruyoruz
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 2. Kullanıcının şu an gitmek istediği URL'yi alıyoruz
+  const currentPath = request.nextUrl.pathname;
+
+  // 3. Herkese açık olması GEREKEN (giriş yapılmadan görülebilen) sayfalar
+  const isPublicPage = 
+    currentPath.startsWith('/login') || 
+    currentPath.startsWith('/register') || 
+    currentPath.startsWith('/forgot-password');
+
+  // 🛡️ KURAL 1: KULLANICI GİRİŞ YAPMAMIŞSA
+  // Ve herkese açık olmayan bir sayfaya (örneğin Dashboard'a) girmeye çalışıyorsa -> KAPI DIŞARI (Login'e yönlendir)
+  if (!user && !isPublicPage) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // 🛡️ KURAL 2: KULLANICI ZATEN GİRİŞ YAPMIŞSA
+  // Ve tekrar Login veya Register sayfasına girmeye çalışıyorsa -> İÇERİ AL (Ana sayfaya yönlendir)
+  if (user && isPublicPage) {
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = '/';
+    return NextResponse.redirect(homeUrl);
+  }
 
   return response;
 }

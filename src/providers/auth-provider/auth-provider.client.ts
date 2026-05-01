@@ -17,6 +17,7 @@ export const authProviderClient: AuthProvider = {
     }
 
     if (data?.session) {
+      /*
       const userId = data.session.user.id; // 🌟 Artık direkt User ID'yi alıyoruz
 
       // 🌟 YENİ SİSTEM: Senin kendi 'profiles' tablonu kontrol ediyoruz
@@ -39,6 +40,7 @@ export const authProviderClient: AuthProvider = {
       }
 
       // Rolü 'admin' ise içeri alıyoruz:
+      */
       await supabaseBrowserClient.auth.setSession(data.session);
       return {
         success: true,
