@@ -1,5 +1,3 @@
-"use client"
-
 import { 
   DashboardOutlined, 
   BookOutlined, 
@@ -7,7 +5,11 @@ import {
   AudioOutlined, 
   AppstoreOutlined, 
   GiftOutlined,
-  UserOutlined // 🌟 Yeni ikonumuzu import ettik
+  UserOutlined,
+  FormatPainterOutlined, // Sanat (Art) için
+  ScissorOutlined,       // El Yapımı (Handmade) için
+  StarOutlined,          // Vitrin Yönetimi (Featured) için
+  UploadOutlined         // Toplu Yükleme (Excel) için
 } from "@ant-design/icons";
 
 export const menuResources = [
@@ -41,7 +43,28 @@ export const menuResources = [
     list: "/gifts",
     meta: { label: "Hediyeler", icon: <GiftOutlined /> },
   },
-  // 🌟 Yeni Hesabım Sayfamız:
+  // 🌟 YENİ EKLENEN SAYFALAR
+  {
+    name: "art_category",
+    list: "/art",
+    meta: { label: "Sanat", icon: <FormatPainterOutlined /> },
+  },
+  {
+    name: "handmade_category",
+    list: "/handmade",
+    meta: { label: "El Yapımı", icon: <ScissorOutlined /> },
+  },
+  {
+    name: "featured_management",
+    list: "/featured",
+    meta: { label: "Vitrin Yönetimi", icon: <StarOutlined /> },
+  },
+  {
+    name: "excel_upload",
+    list: "/excel-upload",
+    meta: { label: "Toplu Yükleme", icon: <UploadOutlined /> },
+  },
+  // Mevcut Hesabım Sayfası:
   {
     name: "account_settings",
     list: "/account",
