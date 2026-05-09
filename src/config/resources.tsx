@@ -1,15 +1,16 @@
 import { 
   DashboardOutlined, 
+  ShoppingOutlined, // 🌟 Siparişler için yeni eklenen ikon
   BookOutlined, 
   MobileOutlined, 
   AudioOutlined, 
   AppstoreOutlined, 
   GiftOutlined,
   UserOutlined,
-  FormatPainterOutlined, // Sanat (Art) için
-  ScissorOutlined,       // El Yapımı (Handmade) için
-  StarOutlined,          // Vitrin Yönetimi (Featured) için
-  UploadOutlined         // Toplu Yükleme (Excel) için
+  FormatPainterOutlined,
+  ScissorOutlined,       
+  StarOutlined,          
+  UploadOutlined         
 } from "@ant-design/icons";
 
 export const menuResources = [
@@ -17,6 +18,12 @@ export const menuResources = [
     name: "dashboard",
     list: "/",
     meta: { label: "Ana Sayfa", icon: <DashboardOutlined /> },
+  },
+  // 🌟 YENİ EKLENEN SİPARİŞ YÖNETİMİ SAYFASI
+  {
+    name: "orders",
+    list: "/orders",
+    meta: { label: "Sipariş Yönetimi", icon: <ShoppingOutlined /> },
   },
   {
     name: "products", 
@@ -43,7 +50,6 @@ export const menuResources = [
     list: "/gifts",
     meta: { label: "Hediyeler", icon: <GiftOutlined /> },
   },
-  // 🌟 YENİ EKLENEN SAYFALAR
   {
     name: "art_category",
     list: "/art",
@@ -64,7 +70,6 @@ export const menuResources = [
     list: "/excel-upload",
     meta: { label: "Toplu Yükleme", icon: <UploadOutlined /> },
   },
-  // Mevcut Hesabım Sayfası:
   {
     name: "account_settings",
     list: "/account",

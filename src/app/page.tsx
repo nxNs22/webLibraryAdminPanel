@@ -1,13 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useList } from "@refinedev/core";
-import { Card, Col, Row, Statistic, Typography, List as AntdList, Badge } from "antd";
+import { Card, Col, Row, Statistic, Typography, List as AntdList, Badge, Tag } from "antd";
 import { 
   AppstoreOutlined, 
-  DollarCircleOutlined, 
+  EuroOutlined, 
   ShoppingCartOutlined, 
   WarningOutlined 
 } from "@ant-design/icons";
+import { supabase } from "./orders/supabaseClient"; // Supabase istemcimizi ekledik
 
 const { Title } = Typography;
 
@@ -24,17 +26,10 @@ export default function DashboardPage() {
   const lowStockQuery = useList({
     resource: "products",
     filters: [
-      {
-        field: "stock",
-        operator: "lt",
-        value: 5,
-      },
+      { field: "stock", operator: "lt", value: 5 }
     ],
     sorters: [
-      {
-        field: "stock",
-        order: "asc",
-      }
+      { field: "stock", order: "asc" }
     ],
     pagination: { pageSize: 10 },
   }) as any;
@@ -49,8 +44,45 @@ export default function DashboardPage() {
   const ordersData = ordersQuery.data || ordersQuery.result;
   const isLoadingOrders = ordersQuery.isLoading || ordersQuery.query?.isLoading;
 
-  // Toplam Gelir (Şimdilik statik)
-  const totalRevenue = 0;
+  // 4. Son 5 Siparişi Çekme (Alt tablo için)
+  const recentOrdersQuery = useList({
+    resource: "orders",
+    sorters: [
+      { field: "created_at", order: "desc" }
+    ],
+    pagination: { pageSize: 5 },
+  }) as any;
+  const recentOrdersData = recentOrdersQuery.data || recentOrdersQuery.result;
+  const isLoadingRecentOrders = recentOrdersQuery.isLoading || recentOrdersQuery.query?.isLoading;
+
+  // 5. Toplam Gelir Hesaplama (Supabase'den)
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [isLoadingRevenue, setIsLoadingRevenue] = useState(true);
+
+  useEffect(() => {
+    const fetchTotalRevenue = async () => {
+      setIsLoadingRevenue(true);
+      try {
+        // İptal edilmemiş siparişlerin toplam tutarlarını çekiyoruz
+        const { data, error } = await supabase
+          .from("orders")
+          .select("total_amount")
+          .neq("status", "cancelled");
+
+        if (error) throw error;
+
+        // Bütün tutarları topluyoruz
+        const total = data?.reduce((sum: number, order: any) => sum + (Number(order.total_amount) || 0), 0) || 0;
+        setTotalRevenue(total);
+      } catch (err: unknown) {
+        console.error("Gelir hesaplanamadı:", err);
+      } finally {
+        setIsLoadingRevenue(false);
+      }
+    };
+
+    fetchTotalRevenue();
+  }, []);
 
   return (
     <div style={{ padding: "24px" }}>
@@ -85,8 +117,10 @@ export default function DashboardPage() {
             <Statistic
               title="Toplam Gelir"
               value={totalRevenue}
-              prefix={<DollarCircleOutlined style={{ color: "#faad14" }} />}
-              suffix="₺"
+              precision={2} // Kuruşları (virgülden sonra 2 hane) gösterir
+              loading={isLoadingRevenue}
+              prefix={<EuroOutlined style={{ color: "#faad14" }} />}
+              suffix="€"
             />
           </Card>
         </Col>
@@ -140,7 +174,33 @@ export default function DashboardPage() {
             bordered={false} 
             style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.05)", borderRadius: "12px" }}
           >
-            <p style={{ color: "gray" }}>Siparişler tablosu bağlandığında burada listelenecek...</p>
+            <AntdList
+              loading={isLoadingRecentOrders}
+              dataSource={recentOrdersData?.data || []}
+              renderItem={(order: any) => {
+                let color = "default";
+                if (order.status === "pending") color = "warning";
+                if (order.status === "processing") color = "processing";
+                if (order.status === "shipped") color = "cyan";
+                if (order.status === "delivered") color = "success";
+                if (order.status === "cancelled") color = "error";
+
+                return (
+                  <AntdList.Item>
+                    <AntdList.Item.Meta
+                      title={<span style={{ fontWeight: "bold" }}>#{order.order_number}</span>}
+                      description={`${order.customer_name} • ${new Date(order.created_at).toLocaleDateString("tr-TR")}`}
+                    />
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                        {Number(order.total_amount).toFixed(2)} €
+                      </div>
+                      <Tag color={color}>{order.status?.toUpperCase()}</Tag>
+                    </div>
+                  </AntdList.Item>
+                );
+              }}
+            />
           </Card>
         </Col>
       </Row>
