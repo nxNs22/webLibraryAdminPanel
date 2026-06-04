@@ -1,16 +1,13 @@
 import { 
   DashboardOutlined, 
-  ShoppingOutlined, // 🌟 Siparişler için yeni eklenen ikon
+  ShoppingOutlined, 
   BookOutlined, 
   MobileOutlined, 
   AudioOutlined, 
   AppstoreOutlined, 
   GiftOutlined,
-  UserOutlined,
   FormatPainterOutlined,
   ScissorOutlined,       
-  StarOutlined,          
-  UploadOutlined         
 } from "@ant-design/icons";
 
 export const menuResources = [
@@ -19,60 +16,52 @@ export const menuResources = [
     list: "/",
     meta: { label: "Ana Sayfa", icon: <DashboardOutlined /> },
   },
-  // 🌟 YENİ EKLENEN SİPARİŞ YÖNETİMİ SAYFASI
   {
     name: "orders",
     list: "/orders",
     meta: { label: "Sipariş Yönetimi", icon: <ShoppingOutlined /> },
   },
   {
-    name: "products", 
+    name: "products", // 🌟 Bütün ürünlerin genel rotası
     list: "/books",
+    edit: "/products/edit/:id", 
+    create: "/products/create",
     meta: { label: "Kitaplar", icon: <BookOutlined /> },
   },
   {
-    name: "ebooks_category",
+    name: "ebooks_list",
     list: "/ebooks",
-    meta: { label: "E-Books", icon: <MobileOutlined /> },
+    edit: "/products/edit/:id", // Aynı Edit sayfasına gidecek
+    meta: { label: "E-Kitaplar", icon: <MobileOutlined /> },
   },
   {
-    name: "audiobooks_category",
+    name: "audiobooks_list",
     list: "/audiobooks",
-    meta: { label: "Audiobooks", icon: <AudioOutlined /> },
+    edit: "/products/edit/:id",
+    meta: { label: "Sesli Kitaplar", icon: <AudioOutlined /> },
   },
   {
-    name: "other_category",
+    name: "other_products",
     list: "/other-products",
+    edit: "/products/edit/:id",
     meta: { label: "Diğer Ürünler", icon: <AppstoreOutlined /> },
   },
   {
-    name: "gifts_category",
+    name: "gifts",
     list: "/gifts",
-    meta: { label: "Hediyeler", icon: <GiftOutlined /> },
+    edit: "/products/edit/:id",
+    meta: { label: "Hediyelik (Gifts)", icon: <GiftOutlined /> },
   },
   {
-    name: "art_category",
-    list: "/art",
-    meta: { label: "Sanat", icon: <FormatPainterOutlined /> },
+    name: "art",
+    list: "/arts",
+    edit: "/products/edit/:id",
+    meta: { label: "Sanat (Art)", icon: <FormatPainterOutlined /> },
   },
   {
-    name: "handmade_category",
+    name: "handmade",
     list: "/handmade",
+    edit: "/products/edit/:id",
     meta: { label: "El Yapımı", icon: <ScissorOutlined /> },
-  },
-  {
-    name: "featured_management",
-    list: "/featured",
-    meta: { label: "Vitrin Yönetimi", icon: <StarOutlined /> },
-  },
-  {
-    name: "excel_upload",
-    list: "/excel-upload",
-    meta: { label: "Toplu Yükleme", icon: <UploadOutlined /> },
-  },
-  {
-    name: "account_settings",
-    list: "/account",
-    meta: { label: "Hesabım", icon: <UserOutlined /> },
   }
 ];
