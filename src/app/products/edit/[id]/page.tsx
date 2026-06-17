@@ -94,6 +94,13 @@ export default function ProductEditPage() {
                 </>
               )}
 
+              {/* İndirim için Eski Fiyat (Tüm Ürünler İçin) */}
+              <Col xs={24} md={12}>
+                <Form.Item label="Eski Fiyat (İndirim Göstermek İçin)" name={["details", "original_price"]}>
+                  <InputNumber style={{ width: "100%" }} placeholder="Örn: 104.00" />
+                </Form.Item>
+              </Col>
+
               {/* Sadece Fiziksel Kitap İçin */}
               {categoryId === 1 && (
                 <Col xs={24} md={12}>
