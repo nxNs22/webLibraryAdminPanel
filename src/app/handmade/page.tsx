@@ -1,20 +1,16 @@
 "use client";
 
-import { List, useTable, EditButton, ShowButton, DeleteButton, ImportButton } from "@refinedev/antd";
-import { useImport } from "@refinedev/core";
+import { List, useTable, EditButton, ShowButton, DeleteButton, ImportButton, useImport } from "@refinedev/antd";
 import { Table, Space, Avatar, Badge } from "antd";
-import React from "react";
 
 export default function HandmadeList() {
   const { tableProps } = useTable({
     resource: "products",
-    filters: { 
-      initial: [{ field: "category_id", operator: "eq", value: 7 }] // Handmade ID: 7
-    },
+    filters: { initial: [{ field: "category", operator: "eq", value: "handmade" }] },
     syncWithLocation: true,
   });
 
-  const importProps = useImport({
+  const { uploadProps, buttonProps } = useImport({
     resource: "products",
     mapData: (item) => {
       try {
@@ -22,56 +18,46 @@ export default function HandmadeList() {
           title: item.title,
           price: parseFloat(item.price) || 0,
           stock: parseInt(item.stock, 10) || 0,
-          image_url: item.image_url,
-          category_id: 7, 
+          image_url: item.image_url || null,
+          category: "handmade",
           details: {
             material: item.material || "Bilinmeyen Malzeme",
-            creator: item.creator || item.author || "Özel Üretim"
-          }
+            creator: item.creator || item.author || "Özel Üretim",
+          },
         };
-      } catch (error) {
-        console.error("Satır işleme hatası:", error);
+      } catch (error: unknown) {
+        console.error("Handmade satırı işlenirken hata:", error);
         return item;
       }
     },
   });
 
-  const { dataSource, loading, pagination } = tableProps;
-
   return (
-    <List 
-      title="El Yapımı (Handmade)" 
+    <List
+      title="El Yapımı (Handmade)"
+      resource="products"
       headerButtons={
-        <ImportButton 
-          buttonProps={{ type: "primary", loading: importProps.isLoading }} 
-          uploadProps={{ 
-            accept: ".csv,.xlsx,.xls", 
-            showUploadList: false, 
-            beforeUpload: (file) => { importProps.handleChange({ file }); return false; } 
-          }} 
+        <ImportButton
+          buttonProps={{ ...buttonProps, type: "primary" }}
+          uploadProps={uploadProps}
         />
       }
     >
-      <Table dataSource={dataSource} loading={loading} rowKey="id" pagination={{ ...(pagination as any), showSizeChanger: true } as any}>
+      <Table {...tableProps} rowKey="id" pagination={{ ...tableProps.pagination, showSizeChanger: true }}>
         <Table.Column dataIndex="image_url" title="Görsel" render={(v) => <Avatar shape="square" size={48} src={v || "/placeholder.png"} />} />
-        <Table.Column dataIndex="title" title="Ürün Adı" sorter />
-        <Table.Column 
-          title="Malzeme (Material)" 
-          render={(_, record: any) => <span>{record.details?.material || "-"}</span>} 
-        />
-        <Table.Column dataIndex="stock" title="Stok" render={(v: number) => <Badge status={v > 0 ? "success" : "error"} text={v > 0 ? `${v} Adet` : "Tükendi"} />} />
+        <Table.Column dataIndex="title" title="Ürün Adı" />
+        <Table.Column title="Malzeme" render={(_, record: any) => record.details?.material || "-"} />
+        <Table.Column dataIndex="stock" title="Stok" render={(v) => (
+          <Badge status={v > 0 ? "success" : "error"} text={v > 0 ? `${v} Adet` : "Tükendi"} />
+        )} />
         <Table.Column dataIndex="price" title="Fiyat" render={(v) => <b>€{Number(v).toFixed(2)}</b>} />
-        <Table.Column 
-          title="İşlemler" 
-          fixed="right"
-          render={(_, record: any) => (
-            <Space>
-              <EditButton hideText size="small" recordItemId={record.id} />
-              <ShowButton hideText size="small" recordItemId={record.id} />
-              <DeleteButton hideText size="small" recordItemId={record.id} />
-            </Space>
-          )} 
-        />
+        <Table.Column title="İşlemler" render={(_, record: any) => (
+          <Space>
+            <EditButton hideText size="small" recordItemId={record.id} />
+            <ShowButton hideText size="small" recordItemId={record.id} />
+            <DeleteButton hideText size="small" recordItemId={record.id} />
+          </Space>
+        )} />
       </Table>
     </List>
   );

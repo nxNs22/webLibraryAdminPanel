@@ -4,21 +4,21 @@ import { Show } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
 import { Card, Row, Col, Tag, Avatar, Descriptions, Badge } from "antd";
 
-const CATEGORY_LABELS: Record<number, { label: string; color: string }> = {
-  1: { label: "Kitap", color: "blue" },
-  2: { label: "E-Book", color: "purple" },
-  3: { label: "Sesli Kitap", color: "orange" },
-  4: { label: "Diğer", color: "default" },
-  5: { label: "Hediyelik", color: "pink" },
-  6: { label: "Sanat", color: "volcano" },
-  7: { label: "El Yapımı", color: "green" },
+const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
+  book: { label: "Kitap", color: "blue" },
+  ebook: { label: "E-Book", color: "purple" },
+  audiobook: { label: "Sesli Kitap", color: "orange" },
+  other: { label: "Diğer", color: "default" },
+  gift: { label: "Hediyelik", color: "pink" },
+  art: { label: "Sanat", color: "volcano" },
+  handmade: { label: "El Yapımı", color: "green" },
 };
 
 export default function ProductShowPage() {
   const { query } = useShow({ resource: "products" });
   const product = query?.data?.data;
 
-  const cat = CATEGORY_LABELS[product?.category_id] ?? { label: "Bilinmiyor", color: "default" };
+  const cat = CATEGORY_LABELS[product?.category] ?? { label: "Bilinmiyor", color: "default" };
 
   return (
     <Show title="Ürün Detayı">
@@ -81,6 +81,29 @@ export default function ProductShowPage() {
                 )}
                 {product.details.target && (
                   <Descriptions.Item label="Hedef Kitle">{product.details.target}</Descriptions.Item>
+                )}
+                {product.details.binding && (
+                  <Descriptions.Item label="Cilt Tipi">{product.details.binding}</Descriptions.Item>
+                )}
+                {product.details.availability && (
+                  <Descriptions.Item label="Durum">{product.details.availability}</Descriptions.Item>
+                )}
+                {product.details.date_of_issue && (
+                  <Descriptions.Item label="Çıkış Yılı">{product.details.date_of_issue}</Descriptions.Item>
+                )}
+                {product.details.tags && Array.isArray(product.details.tags) && (
+                  <Descriptions.Item label="Etiketler">
+                    {product.details.tags.map((t: string) => (
+                      <Tag key={t} color="blue">{t}</Tag>
+                    ))}
+                  </Descriptions.Item>
+                )}
+                {(product.details.genre || product.details.category) && (
+                  <Descriptions.Item label="Tür / Kategori">
+                    {Array.isArray(product.details.genre)
+                      ? product.details.genre.join(", ")
+                      : (product.details.genre || product.details.category)}
+                  </Descriptions.Item>
                 )}
               </Descriptions>
             </Card>

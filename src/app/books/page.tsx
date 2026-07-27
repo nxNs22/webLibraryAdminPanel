@@ -1,28 +1,18 @@
 "use client";
 
-
-import { List, useTable, EditButton, ShowButton, DeleteButton, ImportButton } from "@refinedev/antd";
-import { useImport } from "@refinedev/core";
+import { List, useTable, EditButton, ShowButton, DeleteButton, ImportButton, useImport } from "@refinedev/antd";
 import { Table, Space, Avatar, Badge } from "antd";
 
 export default function BooksList() {
-  // 1. Sadece Kitapları (category_id: 1) Çek
   const { tableProps } = useTable({
     resource: "products",
     filters: {
-      initial: [
-        {
-          field: "category_id",
-          operator: "eq",
-          value: 1, // 🎯 Sadece 1 numaralı kategori (Books) gelsin
-        },
-      ],
+      initial: [{ field: "category", operator: "eq", value: "book" }],
     },
     syncWithLocation: true,
   });
 
-  // 2. Excel/CSV Yükleme Mantığı
-  const importProps = useImport({
+  const { uploadProps, buttonProps } = useImport({
     resource: "products",
     mapData: (item) => {
       try {
@@ -30,72 +20,42 @@ export default function BooksList() {
           title: item.title,
           price: parseFloat(item.price) || 0,
           stock: parseInt(item.stock, 10) || 0,
-          image_url: item.image_url,
-          category_id: 1, // 🎯 Yüklenen her şeyi otomatik "Kitap" yap
-          sub_category_id: parseInt(item.sub_category_id, 10), // 1: Türkçe, 2: İngilizce vb.
-          
-          // 🌟 Kitaba özel bilgileri JSONB formatında "details" içine hapsediyoruz
+          image_url: item.image_url || null,
+          category: "book",
+          subcategory: item.language === "Turkish" ? "turkish" : "english",
           details: {
-            author: item.author,
-            page_count: item.page_count,
-            language: item.language
-          }
+            author: item.author || null,
+            page_count: item.page_count ? parseInt(item.page_count, 10) : null,
+            language: item.language || null,
+            availability: item.availability || null,
+          },
         };
       } catch (error: unknown) {
-        // Her zaman anlaştığımız gibi bilinmeyen hataları güvenle yakalıyoruz
-        console.error("Excel satırı işlenirken hata oluştu:", error);
-        return item; 
+        console.error("Satır işlenirken hata:", error);
+        return item;
       }
     },
   });
 
   return (
     <List
-      title="Kitaplar Kategorisi"
-      headerButtons={<ImportButton 
-  buttonProps={{ 
-    type: "primary",
-    loading: importProps.isLoading 
-  }} 
-  uploadProps={{
-    accept: ".csv,.xlsx,.xls", // Sadece Excel ve CSV dosyalarına izin ver
-    showUploadList: false, // Ekranda gereksiz yükleme çubuğu göstermesin
-    beforeUpload: (file) => {
-      // Dosyayı aldığımız an Ant Design'ın yükleme işlemini durdurup (return false), 
-      // veriyi bizim yazdığımız güvenli Refine (useImport) kancasına aktarıyoruz.
-      try {
-        importProps.handleChange({ file });
-      } catch (error: unknown) {
-        console.error("Dosya okunurken hata oluştu:", error);
+      title="Kitaplar"
+      headerButtons={
+        <ImportButton
+          buttonProps={{ ...buttonProps, type: "primary" }}
+          uploadProps={uploadProps}
+        />
       }
-      return false; 
-    }
-  }}
-/>}
     >
       <Table {...tableProps} rowKey="id" pagination={{ ...tableProps.pagination, showSizeChanger: true }}>
-        
         <Table.Column dataIndex="image_url" title="Görsel" render={(v) => <Avatar shape="square" src={v || "/placeholder.png"} />} />
-        
         <Table.Column dataIndex="title" title="Kitap Adı" />
-        
-        {/* JSONB İçindeki Yazar Bilgisini Gösterme */}
-        <Table.Column 
-          title="Yazar" 
-          render={(_, record: any) => record.details?.author || "-"} 
-        />
-
-        <Table.Column 
-          title="Dil" 
-          render={(_, record: any) => record.details?.language || "-"} 
-        />
-
+        <Table.Column title="Yazar" render={(_, record: any) => record.details?.author || "-"} />
+        <Table.Column title="Dil" render={(_, record: any) => record.details?.language || "-"} />
         <Table.Column dataIndex="stock" title="Stok" render={(v) => (
           <Badge status={v > 0 ? "success" : "error"} text={v > 0 ? `${v} Adet` : "Tükendi"} />
         )} />
-        
-        <Table.Column dataIndex="price" title="Fiyat" render={(v) => <b>₺{Number(v).toFixed(2)}</b>} />
-        
+        <Table.Column dataIndex="price" title="Fiyat" render={(v) => <b>€{Number(v).toFixed(2)}</b>} />
         <Table.Column
           title="İşlemler"
           dataIndex="actions"

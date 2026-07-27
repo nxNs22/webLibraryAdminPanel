@@ -1,22 +1,16 @@
 "use client";
 
-import { List, useTable, EditButton, ShowButton, DeleteButton, ImportButton } from "@refinedev/antd";
-import { useImport } from "@refinedev/core";
+import { List, useTable, EditButton, ShowButton, DeleteButton, ImportButton, useImport } from "@refinedev/antd";
 import { Table, Space, Avatar, Badge } from "antd";
-import React from "react";
 
 export default function GiftsList() {
-  // useTable: Sadece category_id 5 olanları getirir
   const { tableProps } = useTable({
     resource: "products",
-    filters: { 
-      initial: [{ field: "category_id", operator: "eq", value: 5 }] 
-    },
+    filters: { initial: [{ field: "category", operator: "eq", value: "gift" }] },
     syncWithLocation: true,
   });
 
-  // useImport: CSV/Excel'den yüklenen verileri veritabanına hazırlar
-  const importProps = useImport({
+  const { uploadProps, buttonProps } = useImport({
     resource: "products",
     mapData: (item) => {
       try {
@@ -24,101 +18,48 @@ export default function GiftsList() {
           title: item.title,
           price: parseFloat(item.price) || 0,
           stock: parseInt(item.stock, 10) || 0,
-          image_url: item.image_url,
-          category_id: 5, // Zorunlu Gift ID
-          // details objesi: Client tarafındaki filtreleme ile birebir aynı isimler olmalı
+          image_url: item.image_url || null,
+          category: "gift",
+          subcategory: (item.target || "unisex").toLowerCase(),
           details: {
-            target: (item.target || item.target_audience || "Unisex").toLowerCase(), // Küçük harf standardı
             material: item.material || "-",
-            brand: item.brand || "Gift Collection"
-          }
+            brand: item.brand || "Gift Collection",
+            target: (item.target || "unisex").toLowerCase(),
+          },
         };
-      } catch (error) {
-        console.error("Satır işleme hatası:", error);
+      } catch (error: unknown) {
+        console.error("Gift satırı işlenirken hata:", error);
         return item;
       }
     },
   });
 
-  // Ant Design v5/v6 uyuşmazlığını aşmak için objeleri parçalıyoruz
-  const { dataSource, loading, pagination } = tableProps;
-
   return (
-    <List 
-      title="Hediyeler (Gifts)" 
+    <List
+      title="Hediyeler (Gifts)"
+      resource="products"
       headerButtons={
-        <ImportButton 
-          buttonProps={{ type: "primary", loading: importProps.isLoading }} 
-          uploadProps={{ 
-            accept: ".csv,.xlsx,.xls", 
-            showUploadList: false, 
-            beforeUpload: (file) => { 
-              importProps.handleChange({ file }); 
-              return false; 
-            } 
-          }} 
+        <ImportButton
+          buttonProps={{ ...buttonProps, type: "primary" }}
+          uploadProps={uploadProps}
         />
       }
     >
-      <Table 
-        dataSource={dataSource} 
-        loading={loading}
-        rowKey="id" 
-        // Pagination objesini 'as any' ile güvenli hale getiriyoruz
-        pagination={{ 
-          ...(pagination as any), 
-          showSizeChanger: true 
-        } as any}
-      >
-        <Table.Column 
-          dataIndex="image_url" 
-          title="Görsel" 
-          render={(v) => <Avatar shape="square" size={48} src={v || "/placeholder.png"} />} 
-        />
-        
-        <Table.Column 
-          dataIndex="title" 
-          title="Ürün Adı" 
-          sorter
-        />
-        
-        <Table.Column 
-          title="Hedef Kitle (Target)" 
-          render={(_, record: any) => (
-            <span style={{ textTransform: 'capitalize' }}>
-              {record.details?.target || record.details?.target_audience || "-"}
-            </span>
-          )} 
-        />
-        
-        <Table.Column 
-          dataIndex="stock" 
-          title="Stok" 
-          render={(v: number) => (
-            <Badge 
-              status={v > 0 ? "success" : "error"} 
-              text={v > 0 ? `${v} Adet` : "Tükendi"} 
-            />
-          )} 
-        />
-        
-        <Table.Column 
-          dataIndex="price" 
-          title="Fiyat" 
-          render={(v) => <b>€{Number(v).toFixed(2)}</b>} 
-        />
-
-        <Table.Column 
-          title="İşlemler" 
-          fixed="right"
-          render={(_, record: any) => (
-            <Space>
-              <EditButton hideText size="small" recordItemId={record.id} />
-              <ShowButton hideText size="small" recordItemId={record.id} />
-              <DeleteButton hideText size="small" recordItemId={record.id} />
-            </Space>
-          )} 
-        />
+      <Table {...tableProps} rowKey="id" pagination={{ ...tableProps.pagination, showSizeChanger: true }}>
+        <Table.Column dataIndex="image_url" title="Görsel" render={(v) => <Avatar shape="square" size={48} src={v || "/placeholder.png"} />} />
+        <Table.Column dataIndex="title" title="Ürün Adı" />
+        <Table.Column title="Hedef Kitle" render={(_, record: any) => record.details?.target || record.subcategory || "-"} />
+        <Table.Column dataIndex="stock" title="Stok" render={(v) => (
+          <Badge status={v > 0 ? "success" : "error"} text={v > 0 ? `${v} Adet` : "Tükendi"} />
+        )} />
+        <Table.Column dataIndex="price" title="Fiyat" render={(v) => <b>€{Number(v).toFixed(2)}</b>} />
+        <Table.Column title="İşlemler" render={(_, record: any) => (
+          <Space>
+            <EditButton hideText size="small" recordItemId={record.id} />
+            <ShowButton hideText size="small" recordItemId={record.id} />
+            <DeleteButton hideText size="small" recordItemId={record.id} />
+          </Space>
+        )} />
       </Table>
     </List>
   );
